@@ -48,7 +48,7 @@ final readonly class TaskRunner
      * @param Closure(RunnerContext): T                   $task
      * @param Console\Output\OutputInterface::VERBOSITY_* $verbosity
      *
-     * @return T|TaskResult
+     * @return (T is void ? TaskResult : T)
      */
     public function run(
         string $message,

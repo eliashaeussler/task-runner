@@ -57,6 +57,7 @@ final class TaskRunnerTest extends Framework\TestCase
 
         $actual = $this->subject->run('Let\'s go', $task);
 
+        /* @phpstan-ignore staticMethod.alreadyNarrowedType */
         self::assertSame('Hello World!', $actual);
     }
 
@@ -92,6 +93,7 @@ final class TaskRunnerTest extends Framework\TestCase
 
         $actual = $this->subject->run('Let\'s go', $task);
 
+        /* @phpstan-ignore staticMethod.impossibleType */
         self::assertNull($actual);
     }
 
