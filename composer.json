@@ -1,0 +1,78 @@
+{
+	"name": "eliashaeussler/task-runner",
+	"description": "Progress helper for long-running CLI tasks, based on Symfony Console",
+	"license": "GPL-3.0-or-later",
+	"type": "library",
+	"authors": [
+		{
+			"name": "Elias Häußler",
+			"email": "elias@haeussler.dev",
+			"homepage": "https://haeussler.dev",
+			"role": "Maintainer"
+		}
+	],
+	"require": {
+		"php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
+		"symfony/console": "^6.4 || ^7.0 || ^8.0"
+	},
+	"require-dev": {
+		"armin/editorconfig-cli": "^2.2",
+		"eliashaeussler/php-cs-fixer-config": "^3.1",
+		"eliashaeussler/phpstan-config": "^4.0",
+		"eliashaeussler/rector-config": "^4.0",
+		"ergebnis/composer-normalize": "^2.48",
+		"phpstan/extension-installer": "^1.4",
+		"phpstan/phpstan-phpunit": "^2.0",
+		"phpunit/phpunit": "^11.5 || ^12.5",
+		"shipmonk/composer-dependency-analyser": "^1.8"
+	},
+	"autoload": {
+		"psr-4": {
+			"EliasHaeussler\\TaskRunner\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"EliasHaeussler\\TaskRunner\\Tests\\": "tests/src/"
+		}
+	},
+	"config": {
+		"allow-plugins": {
+			"ergebnis/composer-normalize": true,
+			"phpstan/extension-installer": true
+		},
+		"sort-packages": true
+	},
+	"scripts": {
+		"analyze": [
+			"@analyze:dependencies"
+		],
+		"analyze:dependencies": "composer-dependency-analyser",
+		"fix": [
+			"@fix:composer",
+			"@fix:editorconfig",
+			"@fix:php"
+		],
+		"fix:composer": "@composer normalize",
+		"fix:editorconfig": "@lint:editorconfig --fix",
+		"fix:php": "php-cs-fixer fix",
+		"lint": [
+			"@lint:composer",
+			"@lint:editorconfig",
+			"@lint:php"
+		],
+		"lint:composer": "@fix:composer --dry-run",
+		"lint:editorconfig": "ec",
+		"lint:php": "@fix:php --dry-run",
+		"migration": [
+			"@migration:rector"
+		],
+		"migration:rector": "rector process -c rector.php",
+		"sca": [
+			"@sca:php"
+		],
+		"sca:php": "phpstan analyse -c phpstan.php",
+		"test": "@test:coverage --no-coverage",
+		"test:coverage": "phpunit -c phpunit.xml"
+	}
+}
