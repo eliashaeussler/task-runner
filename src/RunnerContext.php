@@ -36,6 +36,7 @@ final class RunnerContext
     public function __construct(
         public readonly Console\Output\OutputInterface $output = new Console\Output\BufferedOutput(),
         public ?bool $successful = null,
+        public ?string $statusMessage = null,
         public bool $throwExceptions = true,
     ) {}
 

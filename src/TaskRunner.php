@@ -77,7 +77,9 @@ final readonly class TaskRunner
             $returnValue = (static fn () => $task($context))();
             $taskResult = TaskResult::fromContext($context);
 
-            if (TaskResult::Success === $taskResult) {
+            if ('' !== ($statusMessage = (string) $context->statusMessage)) {
+                $errorOutput->writeln($statusMessage, $verbosity);
+            } elseif (TaskResult::Success === $taskResult) {
                 $errorOutput->writeln($this->progressDecorator->done($returnValue), $verbosity);
             } else {
                 $errorOutput->writeln($this->progressDecorator->failed(), $verbosity);
