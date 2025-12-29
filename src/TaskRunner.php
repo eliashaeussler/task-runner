@@ -64,7 +64,13 @@ final readonly class TaskRunner
         $newLine = false;
         $decoratedMessage = $this->progressDecorator->progress($message, $newLine);
 
-        $this->output->write($decoratedMessage, $newLine, $verbosity);
+        if ($this->output instanceof Console\Output\ConsoleOutputInterface) {
+            $errorOutput = $this->output->getErrorOutput();
+        } else {
+            $errorOutput = $this->output;
+        }
+
+        $errorOutput->write($decoratedMessage, $newLine, $verbosity);
 
         try {
             $isVoidReturn = $this->isVoidReturn($task);
@@ -72,9 +78,9 @@ final readonly class TaskRunner
             $taskResult = TaskResult::fromContext($context);
 
             if (TaskResult::Success === $taskResult) {
-                $this->output->writeln($this->progressDecorator->done($returnValue), $verbosity);
+                $errorOutput->writeln($this->progressDecorator->done($returnValue), $verbosity);
             } else {
-                $this->output->writeln($this->progressDecorator->failed(), $verbosity);
+                $errorOutput->writeln($this->progressDecorator->failed(), $verbosity);
             }
 
             if (!$isVoidReturn) {
@@ -83,7 +89,7 @@ final readonly class TaskRunner
 
             return $taskResult;
         } catch (Throwable $exception) {
-            $this->output->writeln($this->progressDecorator->failed($exception), $verbosity);
+            $errorOutput->writeln($this->progressDecorator->failed($exception), $verbosity);
 
             // Early return if exceptions should not be re-thrown
             if (!$context->throwExceptions) {
