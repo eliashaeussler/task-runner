@@ -125,6 +125,18 @@ final class TaskRunnerTest extends Framework\TestCase
     }
 
     #[Framework\Attributes\Test]
+    public function runDisplaysMessageAndShowsCustomStatusMessageIfConfigured(): void
+    {
+        $task = static function (Src\RunnerContext $context) {
+            $context->statusMessage = 'Skipped';
+        };
+
+        $this->subject->run('Let\'s go', $task);
+
+        self::assertSame('Let\'s go... Skipped', trim($this->output->fetch()));
+    }
+
+    #[Framework\Attributes\Test]
     public function runDoesNotThrowExceptionIfExplicitlyDisabledViaRunnerContext(): void
     {
         $exception = new Exception('Something went wrong');
