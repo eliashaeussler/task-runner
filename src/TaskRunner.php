@@ -104,7 +104,7 @@ final readonly class TaskRunner
 
             throw $exception;
         } finally {
-            $this->output->write($taskOutput->fetch());
+            $this->output->write($taskOutput->fetch(), false);
         }
     }
 
