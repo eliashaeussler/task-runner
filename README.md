@@ -11,7 +11,7 @@
 
 *Task Runner* is a simple PHP library targeted for CLI-oriented applications
 and projects. It provides a progress helper for long-running CLI tasks, based
-on *Symfony Console*.
+on *Symfony Console* or *Composer IO* (for use in Composer plugins).
 
 ## 🔥 Installation
 

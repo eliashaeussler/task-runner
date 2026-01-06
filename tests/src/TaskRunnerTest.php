@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace EliasHaeussler\TaskRunner\Tests;
 
+use Composer\IO;
 use EliasHaeussler\TaskRunner as Src;
 use Exception;
 use Generator;
@@ -184,5 +185,45 @@ final class TaskRunnerTest extends Framework\TestCase
         $this->subject->run('Let\'s go', $task, Console\Output\OutputInterface::VERBOSITY_VERBOSE);
 
         self::assertSame('', $this->output->fetch());
+    }
+
+    #[Framework\Attributes\Test]
+    public function runSupportsComposerIO(): void
+    {
+        $output = new IO\BufferIO();
+        $subject = new Src\TaskRunner($output);
+        $task = static fn () => 'Hello World!';
+
+        $subject->run('Let\'s go', $task);
+
+        self::assertSame('Let\'s go... Done', trim($output->getOutput()));
+    }
+
+    /**
+     * @return Generator<string, array{Console\Output\OutputInterface::VERBOSITY_*}>
+     */
+    public static function runSupportsComposerIOAndMapsVerbosityLevelDataProvider(): Generator
+    {
+        yield 'debug' => [Console\Output\OutputInterface::VERBOSITY_DEBUG];
+        yield 'very verbose' => [Console\Output\OutputInterface::VERBOSITY_VERY_VERBOSE];
+        yield 'verbose' => [Console\Output\OutputInterface::VERBOSITY_VERBOSE];
+        yield 'normal' => [Console\Output\OutputInterface::VERBOSITY_NORMAL];
+        yield 'quiet' => [Console\Output\OutputInterface::VERBOSITY_QUIET];
+    }
+
+    /**
+     * @param Console\Output\OutputInterface::VERBOSITY_* $verbosity
+     */
+    #[Framework\Attributes\Test]
+    #[Framework\Attributes\DataProvider('runSupportsComposerIOAndMapsVerbosityLevelDataProvider')]
+    public function runSupportsComposerIOAndMapsVerbosityLevel(int $verbosity): void
+    {
+        $output = new IO\BufferIO('', $verbosity);
+        $subject = new Src\TaskRunner($output);
+        $task = static fn () => 'Hello World!';
+
+        $subject->run('Let\'s go', $task, $verbosity);
+
+        self::assertSame('Let\'s go... Done', trim($output->getOutput()));
     }
 }
