@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace EliasHaeussler\TaskRunner;
 
 use Closure;
+use Composer\IO;
 use ReflectionFunction;
 use ReflectionNamedType;
 use Symfony\Component\Console;
@@ -38,7 +39,7 @@ use Throwable;
 final readonly class TaskRunner
 {
     public function __construct(
-        private Console\Output\OutputInterface $output,
+        private Console\Output\OutputInterface|IO\IOInterface $output,
         private Decorator\ProgressDecorator $progressDecorator = new Decorator\SimpleProgressDecorator(),
     ) {}
 
@@ -55,11 +56,8 @@ final readonly class TaskRunner
         Closure $task,
         int $verbosity = Console\Output\OutputInterface::VERBOSITY_NORMAL,
     ): mixed {
-        $taskOutput = new Console\Output\BufferedOutput(
-            $this->output->getVerbosity(),
-            $this->output->isDecorated(),
-            $this->output->getFormatter(),
-        );
+        $taskOutput = $this->createBufferedOutput();
+        $verbosity = $this->mapVerbosityLevel($verbosity);
         $context = new RunnerContext($taskOutput);
         $newLine = false;
         $decoratedMessage = $this->progressDecorator->progress($message, $newLine);
@@ -78,11 +76,11 @@ final readonly class TaskRunner
             $taskResult = TaskResult::fromContext($context);
 
             if ('' !== ($statusMessage = (string) $context->statusMessage)) {
-                $errorOutput->writeln($statusMessage, $verbosity);
+                $errorOutput->write($statusMessage, true, $verbosity);
             } elseif (TaskResult::Success === $taskResult) {
-                $errorOutput->writeln($this->progressDecorator->done($returnValue), $verbosity);
+                $errorOutput->write($this->progressDecorator->done($returnValue), true, $verbosity);
             } else {
-                $errorOutput->writeln($this->progressDecorator->failed(), $verbosity);
+                $errorOutput->write($this->progressDecorator->failed(), true, $verbosity);
             }
 
             if (!$isVoidReturn) {
@@ -91,7 +89,7 @@ final readonly class TaskRunner
 
             return $taskResult;
         } catch (Throwable $exception) {
-            $errorOutput->writeln($this->progressDecorator->failed($exception), $verbosity);
+            $errorOutput->write($this->progressDecorator->failed($exception), true, $verbosity);
 
             // Early return if exceptions should not be re-thrown
             if (!$context->throwExceptions) {
@@ -104,11 +102,52 @@ final readonly class TaskRunner
         }
     }
 
+    private function createBufferedOutput(): Console\Output\BufferedOutput
+    {
+        if ($this->output instanceof IO\IOInterface) {
+            return new Console\Output\BufferedOutput(
+                match (true) {
+                    $this->output->isDebug() => Console\Output\OutputInterface::VERBOSITY_DEBUG,
+                    $this->output->isVeryVerbose() => Console\Output\OutputInterface::VERBOSITY_VERY_VERBOSE,
+                    $this->output->isVerbose() => Console\Output\OutputInterface::VERBOSITY_VERBOSE,
+                    default => Console\Output\OutputInterface::VERBOSITY_NORMAL,
+                },
+                $this->output->isDecorated(),
+            );
+        }
+
+        return new Console\Output\BufferedOutput(
+            $this->output->getVerbosity(),
+            $this->output->isDecorated(),
+            $this->output->getFormatter(),
+        );
+    }
+
     private function isVoidReturn(Closure $closure): bool
     {
         $reflection = new ReflectionFunction($closure);
         $returnType = $reflection->getReturnType();
 
         return $returnType instanceof ReflectionNamedType && 'void' === $returnType->getName();
+    }
+
+    /**
+     * @param Console\Output\OutputInterface::VERBOSITY_* $verbosity
+     *
+     * @return Console\Output\OutputInterface::VERBOSITY_*|IO\IOInterface::*
+     */
+    private function mapVerbosityLevel(int $verbosity): int
+    {
+        if ($this->output instanceof Console\Output\OutputInterface) {
+            return $verbosity;
+        }
+
+        return match ($verbosity) {
+            Console\Output\OutputInterface::VERBOSITY_DEBUG => IO\IOInterface::DEBUG,
+            Console\Output\OutputInterface::VERBOSITY_VERY_VERBOSE => IO\IOInterface::VERY_VERBOSE,
+            Console\Output\OutputInterface::VERBOSITY_VERBOSE => IO\IOInterface::VERBOSE,
+            Console\Output\OutputInterface::VERBOSITY_QUIET => IO\IOInterface::QUIET,
+            default => IO\IOInterface::NORMAL,
+        };
     }
 }
