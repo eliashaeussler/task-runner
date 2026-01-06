@@ -68,7 +68,13 @@ final readonly class TaskRunner
             $errorOutput = $this->output;
         }
 
-        $errorOutput->write($decoratedMessage, $newLine, $verbosity);
+        if ($errorOutput instanceof Console\Output\OutputInterface) {
+            $write = $errorOutput->write(...);
+        } else {
+            $write = $errorOutput->writeError(...);
+        }
+
+        $write($decoratedMessage, $newLine, $verbosity);
 
         try {
             $isVoidReturn = $this->isVoidReturn($task);
@@ -76,11 +82,11 @@ final readonly class TaskRunner
             $taskResult = TaskResult::fromContext($context);
 
             if ('' !== ($statusMessage = (string) $context->statusMessage)) {
-                $errorOutput->write($statusMessage, true, $verbosity);
+                $write($statusMessage, true, $verbosity);
             } elseif (TaskResult::Success === $taskResult) {
-                $errorOutput->write($this->progressDecorator->done($returnValue), true, $verbosity);
+                $write($this->progressDecorator->done($returnValue), true, $verbosity);
             } else {
-                $errorOutput->write($this->progressDecorator->failed(), true, $verbosity);
+                $write($this->progressDecorator->failed(), true, $verbosity);
             }
 
             if (!$isVoidReturn) {
@@ -89,7 +95,7 @@ final readonly class TaskRunner
 
             return $taskResult;
         } catch (Throwable $exception) {
-            $errorOutput->write($this->progressDecorator->failed($exception), true, $verbosity);
+            $write($this->progressDecorator->failed($exception), true, $verbosity);
 
             // Early return if exceptions should not be re-thrown
             if (!$context->throwExceptions) {
