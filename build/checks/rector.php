@@ -21,15 +21,19 @@ declare(strict_types=1);
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-use EliasHaeussler\PHPStanConfig;
+use EliasHaeussler\RectorConfig\Config\Config;
+use Rector\Config\RectorConfig;
+use Rector\ValueObject\PhpVersion;
 
-return PHPStanConfig\Config\Config::create(__DIR__)
-    ->in(
-        'src',
-        'tests',
-    )
-    ->withBleedingEdge()
-    ->maxLevel()
-    ->useCacheDir('.build/cache/phpstan')
-    ->toArray()
-;
+return static function (RectorConfig $rectorConfig): void {
+    $rootPath = dirname(__DIR__, 2);
+
+    Config::create($rectorConfig, PhpVersion::PHP_82)
+        ->in(
+            $rootPath.'/src',
+            $rootPath.'/tests',
+        )
+        ->withPHPUnit()
+        ->apply()
+    ;
+};
