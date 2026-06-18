@@ -4,7 +4,6 @@
 
 [![Coverage](https://img.shields.io/coverallsCoverage/github/eliashaeussler/task-runner?logo=coveralls)](https://coveralls.io/github/eliashaeussler/task-runner)
 [![CI](https://img.shields.io/github/actions/workflow/status/eliashaeussler/task-runner/ci.yaml?label=CI&logo=github)](https://github.com/eliashaeussler/task-runner/actions/workflows/ci.yaml)
-[![Tests](https://img.shields.io/github/actions/workflow/status/eliashaeussler/task-runner/tests.yaml?label=tests&logo=github)](https://github.com/eliashaeussler/task-runner/actions/workflows/tests.yaml)
 [![Supported PHP Versions](https://img.shields.io/packagist/dependency-v/eliashaeussler/task-runner/php?logo=php)](https://packagist.org/packages/eliashaeussler/task-runner)
 
 </div>
